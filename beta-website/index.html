@@ -180,14 +180,19 @@
                   data-callback="handleCredentialResponse"
                   data-auto_prompt="false">
              </div>
-             <div class="g_id_signin"
-                  data-type="standard"
-                  data-size="large"
-                  data-theme="outline"
-                  data-text="signin_with"
-                  data-shape="pill"
-                  data-logo_alignment="left">
+             <div id="google-signin-container" class="flex items-center">
+                 <div class="g_id_signin"
+                      data-type="standard"
+                      data-size="large"
+                      data-theme="outline"
+                      data-text="signin_with"
+                      data-shape="pill"
+                      data-logo_alignment="left">
+                 </div>
              </div>
+             <a id="dashboard-link" href="#" class="hidden px-6 py-3 bg-white text-black text-[10px] font-black rounded-full hover:scale-105 transition-all uppercase tracking-widest shadow-lg items-center justify-center">
+                Visit Dashboard
+             </a>
              <div class="w-12 h-12 liquid-glass flex items-center justify-center border border-white/20 hover:border-white/50 transition-all cursor-pointer rounded-2xl">
                 <i class="fas fa-bars text-xs opacity-70"></i>
              </div>
@@ -359,17 +364,26 @@
         }
 
         function handleCredentialResponse(response) {
-            console.log("Encoded JWT ID token: " + response.credential);
             const responsePayload = decodeJwtResponse(response.credential);
-            console.log("ID: " + responsePayload.sub);
-            console.log('Full Name: ' + responsePayload.name);
-            console.log('Email: ' + responsePayload.email);
             
-            // UI Transition after sign-in
-            document.getElementById('google-signin-container').classList.add('hidden');
-            document.getElementById('dashboard-link').classList.remove('hidden');
+            // Update UI to show status
+            const container = document.getElementById('google-signin-container');
+            container.innerHTML = `<span class="text-[10px] font-black uppercase tracking-widest text-white/50 mr-4">Signed in as ${responsePayload.given_name || responsePayload.name}</span>`;
             
-            alert(`Welcome, ${responsePayload.name}!`);
+            // Prepare dashboard link with user details
+            const dashboardUrl = `https://quantal-labs.com/dashboard?name=${encodeURIComponent(responsePayload.name)}&email=${encodeURIComponent(responsePayload.email)}&picture=${encodeURIComponent(responsePayload.picture)}`;
+            
+            const dashboardLink = document.getElementById('dashboard-link');
+            dashboardLink.href = dashboardUrl;
+            dashboardLink.classList.remove('hidden');
+            dashboardLink.classList.add('flex'); // Ensure it displays correctly
+            
+            console.log("Redirecting to dashboard with user data...");
+            
+            // Automatic redirect after a short delay to show the status
+            setTimeout(() => {
+                window.location.href = dashboardUrl;
+            }, 2000);
         }
 
         function decodeJwtResponse(token) {
