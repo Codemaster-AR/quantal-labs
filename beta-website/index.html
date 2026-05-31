@@ -218,7 +218,7 @@
                     <button class="px-10 py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-[0_0_30_rgba(255,255,255,0.3)] transition-all">
                         View Projects
                     </button>
-                    <button id="hero-action-btn" onclick="google.accounts.id.prompt()" class="px-10 py-5 liquid-glass rounded-2xl font-black text-xs uppercase tracking-widest border border-white/20">
+                    <button id="hero-action-btn" onclick="triggerGoogleSignIn()" class="px-10 py-5 liquid-glass rounded-2xl font-black text-xs uppercase tracking-widest border border-white/20">
                         Sign in with Google
                     </button>
                 </div>
@@ -363,27 +363,41 @@
             requestAnimationFrame(animate);
         }
 
+        function triggerGoogleSignIn() {
+            if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+                google.accounts.id.prompt();
+            } else {
+                alert("Google Sign-In is still loading or blocked by your browser. Please disable any ad-blockers and try again.");
+            }
+        }
+
         function handleCredentialResponse(response) {
             const responsePayload = decodeJwtResponse(response.credential);
             
-            // Update UI to show status
+            // Update UI in nav
             const container = document.getElementById('google-signin-container');
-            container.innerHTML = `<span class="text-[10px] font-black uppercase tracking-widest text-white/50 mr-4">Signed in as ${responsePayload.given_name || responsePayload.name}</span>`;
+            if (container) {
+                container.innerHTML = `<span class="text-[10px] font-black uppercase tracking-widest text-white/50 mr-4">Signed in as ${responsePayload.given_name || responsePayload.name}</span>`;
+            }
             
-            // Prepare dashboard link with user details
             const dashboardUrl = `https://quantal-labs.com/dashboard?name=${encodeURIComponent(responsePayload.name)}&email=${encodeURIComponent(responsePayload.email)}&picture=${encodeURIComponent(responsePayload.picture)}`;
             
             const dashboardLink = document.getElementById('dashboard-link');
-            dashboardLink.href = dashboardUrl;
-            dashboardLink.classList.remove('hidden');
-            dashboardLink.classList.add('flex'); // Ensure it displays correctly
+            if (dashboardLink) {
+                dashboardLink.href = dashboardUrl;
+                dashboardLink.classList.remove('hidden');
+                dashboardLink.classList.add('flex');
+            }
+
+            const heroBtn = document.getElementById('hero-action-btn');
+            if (heroBtn) {
+                heroBtn.innerText = "Visit Dashboard";
+                heroBtn.onclick = () => {
+                    window.location.href = dashboardUrl;
+                };
+            }
             
-            console.log("Redirecting to dashboard with user data...");
-            
-            // Automatic redirect after a short delay to show the status
-            setTimeout(() => {
-                window.location.href = dashboardUrl;
-            }, 2000);
+            console.log("User signed in. Dashboard buttons updated.");
         }
 
         function decodeJwtResponse(token) {
@@ -393,30 +407,6 @@
                 return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
             }).join(''));
             return JSON.parse(jsonPayload);
-        }
-
-        resize();
-        animate();
-    </script>
-</body>
-</html>
-n JSON.parse(jsonPayload);
-        }
-
-        resize();
-        animate();
-    </script>
-</body>
-</html>
-onPayload);
-        }
-
-        resize();
-        animate();
-    </script>
-</body>
-</html>
-n JSON.parse(jsonPayload);
         }
 
         resize();
