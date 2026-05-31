@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/Codemaster-AR/quantal/main/Logos/ICO/logoico/favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantal Labs - Engineering the future</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;600;800&display=swap');
+
+        :root {
+            --bg-deep: #02040a;
+            --liquid-1: #4338ca;
+            --liquid-2: #7e22ce;
+            --liquid-3: #be185d;
+            --glass-blur: blur(60px) saturate(220%);
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Fixed Visual Layers */
+        #visual-canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .liquid-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            mix-blend-mode: screen;
+            will-change: transform;
+            opacity: 0.4;
+        }
+
+        /* Upgraded Liquid Glass Effect */
+        .liquid-glass {
+            position: relative;
+            background: linear-gradient(
+                135deg, 
+                rgba(255, 255, 255, 0.05) 0%, 
+                rgba(255, 255, 255, 0.01) 100%
+            );
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 2.5rem;
+            box-shadow: 
+                0 30px 60px -12px rgba(0, 0, 0, 0.5),
+                inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .liquid-glass::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(
+                to bottom,
+                rgba(255, 255, 255, 0.05) 0%,
+                transparent 100%
+            );
+            pointer-events: none;
+            border-radius: 2.5rem 2.5rem 0 0;
+        }
+
+        .nav-glass {
+            background: rgba(2, 4, 10, 0.4);
+            backdrop-filter: blur(30px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hero-title {
+            background: linear-gradient(180deg, #fff 30%, rgba(255,255,255,0.4) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.05em;
+        }
+
+        .floating {
+            animation: float 8s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        section {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+        }
+
+        .content-wrap {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        #mainCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        /* Scaled up Logo styling */
+        .quantal-logo {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.4));
+            transition: transform 0.3s ease;
+        }
+
+        .quantal-logo:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="visual-canvas-container">
+        <div class="liquid-blob" id="blob-1" style="width: 700px; height: 700px; background: var(--liquid-1); top: -200px; left: -200px;"></div>
+        <div class="liquid-blob" id="blob-2" style="width: 600px; height: 600px; background: var(--liquid-2); bottom: -100px; right: -100px;"></div>
+        <div class="liquid-blob" id="blob-3" style="width: 500px; height: 500px; background: var(--liquid-3); top: 30%; left: 40%;"></div>
+        <canvas id="mainCanvas"></canvas>
+    </div>
+
+    <!-- Navigation Header -->
+    <nav class="fixed top-0 w-full z-[100] nav-glass px-8 py-4 flex justify-between items-center">
+        <!-- Top Left Corner: Logo & Branding -->
+        <div class="flex items-center gap-5">
+            <div class="w-16 h-16 flex items-center justify-center">
+                <!-- Restored & Linked Logo (Raw URL) -->
+                <img src="https://raw.githubusercontent.com/Codemaster-AR/quantal/main/Logos/Quantal.png" 
+                     alt="Quantal Logo" 
+                     class="quantal-logo"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                <!-- Fallback if image fails -->
+                <div class="hidden w-12 h-12 bg-white rounded-2xl items-center justify-center shadow-lg">
+                    <div class="w-6 h-6 bg-black rounded-lg"></div>
+                </div>
+            </div>
+            <div class="flex flex-col">
+                <span class="font-extrabold tracking-tighter text-2xl leading-none">QUANTAL</span>
+                <span class="text-[8px] font-black tracking-[0.4em] uppercase text-white/30">Intelligence</span>
+            </div>
+        </div>
+
+        <!-- Center: Links -->
+        <div class="hidden md:flex gap-10 text-[9px] font-black tracking-[0.4em] text-white/50 uppercase">
+            <a href="#" class="hover:text-white transition-all">Interface</a>
+            <a href="#" class="hover:text-white transition-all">Systems</a>
+            <a href="#" class="hover:text-white transition-all">Laboratory</a>
+        </div>
+
+        <!-- Right Corner: Actions -->
+        <div class="flex items-center gap-4">
+             <div id="g_id_onload"
+                  data-client_id="127991488310-dmi2n6jv6ess77953n2e98klg6sltc30.apps.googleusercontent.com"
+                  data-callback="handleCredentialResponse"
+                  data-auto_prompt="false">
+             </div>
+             <div class="g_id_signin"
+                  data-type="standard"
+                  data-size="large"
+                  data-theme="outline"
+                  data-text="signin_with"
+                  data-shape="pill"
+                  data-logo_alignment="left">
+             </div>
+             <div class="w-12 h-12 liquid-glass flex items-center justify-center border border-white/20 hover:border-white/50 transition-all cursor-pointer rounded-2xl">
+                <i class="fas fa-bars text-xs opacity-70"></i>
+             </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="min-h-screen flex flex-col justify-center items-center text-center pt-24">
+            <div class="content-wrap" id="hero-parallax">
+                <div class="inline-flex items-center gap-3 px-5 py-2 rounded-full border border-white/10 bg-white/5 text-[9px] font-black tracking-[0.4em] uppercase text-indigo-400 mb-10">
+                    <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                    Operational Core v26.0
+                </div>
+                <h1 class="hero-title text-8xl md:text-[11rem] font-extrabold mb-10 leading-[0.85] tracking-tighter">
+                    QUANTAL <br> LABS
+                </h1>
+                <p class="text-white/40 text-xl md:text-2xl max-w-3xl mx-auto font-light leading-relaxed tracking-tight mb-16">
+                    Intelligence <br>
+                    <span class="text-white/70">Engineering the future</span>
+                </p>
+                <div class="flex gap-6 justify-center items-center">
+                    <button class="px-10 py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all">
+                        Initiate
+                    </button>
+                    <button class="px-10 py-5 liquid-glass rounded-2xl font-black text-xs uppercase tracking-widest border border-white/20">
+                        View Specs
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Widgets -->
+        <section class="py-40 relative">
+            <div class="content-wrap">
+                <div class="grid md:grid-cols-3 gap-10 items-stretch">
+                    <div class="liquid-glass p-12 floating" style="animation-delay: 0s;">
+                        <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-10 border border-indigo-500/20">
+                            <i class="fas fa-microchip text-indigo-400 text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-5 tracking-tight">Conent</h3>
+                        <p class="text-white/40 text-base leading-relaxed font-light">
+                            Powerful and useful applications, powered by a reliable API and artificial intelligence.
+                        </p>
+                    </div>
+
+                    <div class="liquid-glass p-12 floating" style="animation-delay: -2.5s;">
+                        <div class="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-10 border border-purple-500/20">
+                            <i class="fas fa-layer-group text-purple-400 text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-5 tracking-tight">Usage</h3>
+                        <p class="text-white/40 text-base leading-relaxed font-light">
+                            Modern interface, easy to download, simple to use.
+                        </p>
+                    </div>
+
+                    <div class="liquid-glass p-12 floating" style="animation-delay: -5s;">
+                        <div class="w-14 h-14 rounded-2xl bg-pink-500/10 flex items-center justify-center mb-10 border border-pink-500/20">
+                            <i class="fas fa-fingerprint text-pink-400 text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-5 tracking-tight">Privacy & Authentication</h3>
+                        <p class="text-white/40 text-base leading-relaxed font-light">
+                            Google Auth, the safest and most secure authentication method.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-40 mb-40">
+            <div class="content-wrap">
+                <div class="liquid-glass p-20 flex flex-col lg:flex-row items-center gap-20">
+                    <div class="lg:w-1/2">
+                        <div class="text-indigo-400 text-[10px] font-black tracking-[0.5em] uppercase mb-6">Environment Logic</div>
+                        <h2 class="text-5xl font-extrabold mb-8 tracking-tighter leading-tight">The interface <br>that breathes.</h2>
+                        <p class="text-white/50 text-lg leading-relaxed mb-10 font-light">
+                            Quantal isn't just a static layout. It's a living environment where every particle and color reacts to your Presence.
+                        </p>
+                    </div>
+                    <div class="lg:w-1/2 w-full h-[400px] liquid-glass bg-white/[0.02] flex items-center justify-center group overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-all rounded-[2.5rem]"></div>
+                        <div class="text-8xl font-black text-white/5 italic tracking-tighter select-none">TAHOE</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="py-20 border-t border-white/5">
+        <div class="content-wrap flex flex-col md:flex-row justify-between items-center gap-10 opacity-30 text-[10px] font-bold tracking-[0.4em] uppercase">
+            <span>© 2026 Quantal-labs - By Anay Rustogi</span>
+            <div class="flex gap-10">
+                <a href="#">Security</a>
+                <a href="#">Nodes</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mouse = { x: -2000, y: -2000 };
+        let scrollY = window.pageYOffset;
+
+        class Particle {
+            constructor() { this.init(); }
+            init() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.originX = this.x;
+                this.originY = this.y;
+                this.size = Math.random() * 2 + 0.5;
+                this.color = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`;
+                this.vx = 0; this.vy = 0;
+            }
+            update() {
+                const pY = scrollY * 0.15;
+                const actualY = (this.y - pY + canvas.height * 2) % canvas.height;
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - actualY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 300) {
+                    const force = (300 - distance) / 300;
+                    const angle = Math.atan2(dy, dx);
+                    this.vx -= Math.cos(angle) * force * 5;
+                    this.vy -= Math.sin(angle) * force * 5;
+                }
+                this.vx += (this.originX - this.x) * 0.001;
+                this.vy += (this.originY - this.y) * 0.001;
+                this.vx *= 0.95; this.vy *= 0.95;
+                this.x += this.vx; this.y += this.vy;
+            }
+            draw() {
+                const pY = scrollY * 0.15;
+                const actualY = (this.y - pY + canvas.height * 2) % canvas.height;
+                ctx.beginPath();
+                ctx.arc(this.x, actualY, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = Array.from({ length: 150 }, () => new Particle());
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        window.addEventListener('scroll', () => {
+            scrollY = window.pageYOffset;
+            const hero = document.getElementById('hero-parallax');
+            if(hero) {
+                hero.style.transform = `translateY(${scrollY * 0.3}px)`;
+                hero.style.opacity = Math.max(0, 1 - (scrollY / 800));
+            }
+        });
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+
+        function handleCredentialResponse(response) {
+            console.log("Encoded JWT ID token: " + response.credential);
+            const responsePayload = decodeJwtResponse(response.credential);
+            console.log("ID: " + responsePayload.sub);
+            console.log('Full Name: ' + responsePayload.name);
+            console.log('Email: ' + responsePayload.email);
+            alert(`Welcome, ${responsePayload.name}!`);
+        }
+
+        function decodeJwtResponse(token) {
+            var base64Url = token.split('.')[1];
+            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        resize();
+        animate();
+    </script>
+</body>
+</html>
