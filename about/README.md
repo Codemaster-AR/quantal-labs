@@ -1,4 +1,4 @@
 # quantal-labs
-My website
-connected to cloudfare https://dash.cloudflare.com/689d4bcd5dc8cbd533884af2842efcfe/pages/view/quantal-labs-v1
-website is quantal-labs.com
+Quantal Labs is a technology studio focused on building modern software products and practical, AI‑powered tools. Our solutions are designed to help you work faster, make better decisions, and automate repetitive tasks, so you can focus on what really matters.
+We place a strong emphasis on security and privacy at every layer of our stack. Your data is protected with industry‑standard best practices, and we continuously monitor and improve our systems to keep your information safe.
+To give you full visibility and control, we provide a unified dashboard where you can manage all your projects, tools, and settings in one place. From this dashboard, you can customize workflows, track usage, review activity, and configure permissions—everything you need to run your AI‑powered tools with confidence.
