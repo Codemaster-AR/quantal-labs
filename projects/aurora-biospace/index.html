@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aurora BioSpace - Live Mirror</title>
+    <title>Live GitHub Mirror</title>
     <!-- Tailwind CSS for the control overlay -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -39,9 +39,10 @@
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
         </div>
-        <h1 class="text-xl font-medium tracking-wide text-emerald-400">Aurora BioSpace</h1>
+        <!-- These text nodes will be populated automatically from the CONFIG object -->
+        <h1 id="loading-title" class="text-xl font-medium tracking-wide text-emerald-400">Loading...</h1>
         <p class="text-sm text-gray-400 mt-2">Compiling live code from GitHub repository...</p>
-        <p class="text-xs text-gray-500 mt-1 italic font-mono">Codemaster-AR/Aurora-BioSpace/main/index.html</p>
+        <p id="loading-repo-path" class="text-xs text-gray-500 mt-1 italic font-mono">Updating...</p>
     </div>
 
     <!-- Live Render Frame (Full Page Isolation) -->
@@ -77,19 +78,39 @@
 
     <!-- Main Live Fetcher & Injector Script -->
     <script>
-        // The GitHub REST API contents URL pointing directly to your index.html
-        const GITHUB_API_URL = 'https://api.github.com/repos/Codemaster-AR/Aurora-BioSpace/contents/index.html?ref=main';
+        // ==========================================
+        //         EASY CONFIGURATION BLOCK
+        // ==========================================
+        const CONFIG = {
+            owner: 'Codemaster-AR',       // GitHub Username or Organization
+            repo: 'Aurora-BioSpace',       // Repository Name
+            branch: 'main',                // Branch Name (e.g. main, master, dev)
+            filePath: 'index.html',        // File path within the repository
+            displayName: 'Aurora BioSpace' // Title shown on the loading screen
+        };
+        // ==========================================
+
+        // Automatically structure the API endpoints using your variables
+        const GITHUB_API_URL = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${CONFIG.filePath}?ref=${CONFIG.branch}`;
         
-        // Base URL for resolving relative file paths, styles, and assets
-        const BASE_ASSET_PATH = 'https://raw.githubusercontent.com/Codemaster-AR/Aurora-BioSpace/main/';
+        // Compute base directory path for relative elements (images, stylesheets, etc.)
+        const directoryPath = CONFIG.filePath.substring(0, CONFIG.filePath.lastIndexOf('/') + 1);
+        const BASE_ASSET_PATH = `https://raw.githubusercontent.com/${CONFIG.owner}/${CONFIG.repo}/${CONFIG.branch}/${directoryPath}`;
 
         // Failover Proxy URL to bypass strict Sandboxed iframe network limitations if needed
         const PROXY_URL = 'https://corsproxy.io/?' + encodeURIComponent(GITHUB_API_URL);
 
+        // DOM elements
         const liveFrame = document.getElementById('live-frame');
         const loadingScreen = document.getElementById('loading-screen');
+        const loadingTitle = document.getElementById('loading-title');
+        const loadingRepoPath = document.getElementById('loading-repo-path');
         const lastSyncLabel = document.getElementById('last-sync');
         const syncBtn = document.getElementById('sync-btn');
+
+        // Set loading screen texts based on CONFIG on load
+        if (loadingTitle) loadingTitle.textContent = CONFIG.displayName;
+        if (loadingRepoPath) loadingRepoPath.textContent = `${CONFIG.owner}/${CONFIG.repo}/${CONFIG.branch}/${CONFIG.filePath}`;
 
         // Fetch and run the HTML directly inside the sandboxed iframe
         async function fetchAndRender() {
@@ -109,7 +130,7 @@
                     // 2. Second Attempt (Failover): Fetch through CORS proxy
                     response = await fetch(`${PROXY_URL}&t=${Date.now()}`);
                     if (!response.ok) {
-                        throw new Error(`Failed to load index.html from both direct API and CORS proxy (Status: ${response.status})`);
+                        throw new Error(`Failed to load ${CONFIG.filePath} from both direct API and CORS proxy (Status: ${response.status})`);
                     }
                     data = await response.json();
                 }
@@ -155,7 +176,9 @@
 
                 // Update page title matching the target's title
                 if (doc.title) {
-                    document.title = `${doc.title} (Live)`;
+                    document.title = `${doc.title} (Live Mirror)`;
+                } else {
+                    document.title = `${CONFIG.displayName} (Live Mirror)`;
                 }
 
                 // Update sync timestamp (using optional chaining as the element is commented out)
