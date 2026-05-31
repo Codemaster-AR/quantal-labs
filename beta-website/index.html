@@ -215,11 +215,11 @@
                     <span class="text-white/70">Engineering the future</span>
                 </p>
                 <div class="flex gap-6 justify-center items-center">
-                    <button class="px-10 py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all">
+                    <button class="px-10 py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-[0_0_30_rgba(255,255,255,0.3)] transition-all">
                         View Projects
                     </button>
-                    <button class="px-10 py-5 liquid-glass rounded-2xl font-black text-xs uppercase tracking-widest border border-white/20">
-                        Visist Dashboard
+                    <button id="hero-action-btn" onclick="google.accounts.id.prompt()" class="px-10 py-5 liquid-glass rounded-2xl font-black text-xs uppercase tracking-widest border border-white/20">
+                        Sign in with Google
                     </button>
                 </div>
             </div>
@@ -393,6 +393,22 @@
                 return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
             }).join(''));
             return JSON.parse(jsonPayload);
+        }
+
+        resize();
+        animate();
+    </script>
+</body>
+</html>
+n JSON.parse(jsonPayload);
+        }
+
+        resize();
+        animate();
+    </script>
+</body>
+</html>
+onPayload);
         }
 
         resize();
