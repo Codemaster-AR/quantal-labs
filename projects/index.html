@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantal Labs | Projects</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            950: '#030712',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030712;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(14, 165, 233, 0.1) 0, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.08) 0, transparent 40%);
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .glass-card:hover {
+            border-color: rgba(14, 165, 233, 0.4);
+            box-shadow: 0 10px 30px -10px rgba(14, 165, 233, 0.2);
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between selection:bg-sky-500/30 selection:text-sky-200 overflow-x-hidden">
+
+    <!-- Navigation / Header -->
+    <header class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <!-- Back to Home Link (Pinned Top Left) -->
+            <a href="https://quantal-labs.com" 
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all duration-300 w-fit group">
+                <i data-lucide="arrow-left" class="w-4 h-4 text-sky-400 group-hover:-translate-x-1 transition-transform"></i>
+                <span>Back to Home</span>
+            </a>
+            
+            <!-- Branding / Logo -->
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-sky-500/20">
+                    <span class="font-extrabold text-white text-sm">Q</span>
+                </div>
+                <span class="text-lg font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">QUANTAL</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Body Area -->
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        <!-- Hero Section -->
+        <div class="max-w-3xl mb-12">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-xs font-semibold text-sky-400 mb-4 tracking-wide uppercase">
+                Project Hub
+            </div>
+            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
+                Explore Our <span class="bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400">Inventions</span>
+            </h1>
+            <p class="text-lg text-slate-400 leading-relaxed">
+                Discover the open-source libraries, simulations, and tools pushing the boundaries of technology at Quantal Labs.
+            </p>
+        </div>
+
+        <!-- Search and Interactive Filters -->
+        <div class="mb-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-6 border-b border-slate-800/60">
+            <!-- Category Filters -->
+            <div class="flex flex-wrap gap-2" id="filter-container">
+                <button onclick="filterProjects('all')" data-category="all" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-sky-500 text-white shadow-lg shadow-sky-500/15 border border-sky-500/30 transition-all duration-200">
+                    All Projects
+                </button>
+                <button onclick="filterProjects('simulation')" data-category="simulation" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-900/80 text-slate-400 border border-slate-800 hover:bg-slate-800/80 hover:text-white transition-all duration-200">
+                    Simulations
+                </button>
+                <button onclick="filterProjects('ai')" data-category="ai" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-900/80 text-slate-400 border border-slate-800 hover:bg-slate-800/80 hover:text-white transition-all duration-200">
+                    Machine Learning
+                </button>
+                <button onclick="filterProjects('systems')" data-category="systems" class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-900/80 text-slate-400 border border-slate-800 hover:bg-slate-800/80 hover:text-white transition-all duration-200">
+                    Core Systems
+                </button>
+            </div>
+
+            <!-- Live Search Bar -->
+            <div class="relative w-full lg:max-w-xs">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </span>
+                <input type="text" id="search-input" onkeyup="searchProjects()" placeholder="Search projects..." 
+                       class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-850 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 text-sm text-slate-100 placeholder-slate-500 transition-all">
+            </div>
+        </div>
+
+        <!-- Projects Grid -->
+        <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- Project 1: Quantum Wave Simulator -->
+            <div class="project-item group relative flex flex-col justify-between p-6 rounded-2xl glass-card transition-all duration-300" data-tags="simulation">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-2.5 rounded-xl bg-sky-500/10 text-sky-400">
+                            <i data-lucide="activity" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-400">Simulation</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-slate-100 group-hover:text-sky-400 transition-colors">Quantum Wave Simulator</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        An interactive wave-function simulator modeled directly on Schrodinger equations with WebGL support.
+                    </p>
+                </div>
+                <a href="https://quantal-labs.com/wave-sim" target="_blank" class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-sky-500/10 hover:text-sky-400 border border-slate-850 hover:border-sky-500/30 text-center font-medium text-sm text-slate-300 flex items-center justify-center gap-2 transition-all duration-200">
+                    <span>View Project</span>
+                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+            <!-- Project 2: Neural-X Optimizer -->
+            <div class="project-item group relative flex flex-col justify-between p-6 rounded-2xl glass-card transition-all duration-300" data-tags="ai">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
+                            <i data-lucide="brain-circuit" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-400">ML / AI</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-slate-100 group-hover:text-purple-400 transition-colors">Aurora Biospace</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Smart Space Bioscience Data search engine with AI analysis and Google Auth
+                    </p>
+                </div>
+                <a href="https://quantal-labs.com/projects/aurora-biospace/" target="_blank" class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-purple-500/10 hover:text-purple-400 border border-slate-850 hover:border-purple-500/30 text-center font-medium text-sm text-slate-300 flex items-center justify-center gap-2 transition-all duration-200">
+                    <span>View Project</span>
+                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+            <!-- Project 3: Proton File System -->
+            <div class="project-item group relative flex flex-col justify-between p-6 rounded-2xl glass-card transition-all duration-300" data-tags="systems">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                            <i data-lucide="hard-drive" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-400">Core Systems</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-slate-100 group-hover:text-emerald-400 transition-colors">Proton File System</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        An ultra-resilient, distributed transactional database kernel running natively on high-concurrency protocols.
+                    </p>
+                </div>
+                <a href="https://quantal-labs.com/proton-fs" target="_blank" class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-emerald-500/10 hover:text-emerald-400 border border-slate-850 hover:border-emerald-500/30 text-center font-medium text-sm text-slate-300 flex items-center justify-center gap-2 transition-all duration-200">
+                    <span>View Project</span>
+                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+            <!-- Project 4: Cosmos Graph Engine -->
+            <div class="project-item group relative flex flex-col justify-between p-6 rounded-2xl glass-card transition-all duration-300" data-tags="simulation">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-2.5 rounded-xl bg-sky-500/10 text-sky-400">
+                            <i data-lucide="orbit" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-400">Simulation</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-slate-100 group-hover:text-sky-400 transition-colors">Cosmos Graph Engine</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Relativistic cosmological gravity solver utilizing decentralized telemetry node points.
+                    </p>
+                </div>
+                <a href="https://quantal-labs.com/cosmos-graph" target="_blank" class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-sky-500/10 hover:text-sky-400 border border-slate-850 hover:border-sky-500/30 text-center font-medium text-sm text-slate-300 flex items-center justify-center gap-2 transition-all duration-200">
+                    <span>View Project</span>
+                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+            <!-- Project 5: Entropy Engine -->
+            <div class="project-item group relative flex flex-col justify-between p-6 rounded-2xl glass-card transition-all duration-300" data-tags="systems">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                            <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-400">Core Systems</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-slate-100 group-hover:text-emerald-400 transition-colors">Entropy Key Crypt</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        A robust, zero-trust hardware security module (HSM) micro-client for highly-sensitive workloads.
+                    </p>
+                </div>
+                <a href="https://quantal-labs.com/entropy-crypt" target="_blank" class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-emerald-500/10 hover:text-emerald-400 border border-slate-850 hover:border-emerald-500/30 text-center font-medium text-sm text-slate-300 flex items-center justify-center gap-2 transition-all duration-200">
+                    <span>View Project</span>
+                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+            <!-- Project 6: Helix Agent CLI -->
+            <div class="project-item group relative flex flex-col justify-between p-6 rounded-2xl glass-card transition-all duration-300" data-tags="ai">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
+                            <i data-lucide="terminal" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-800 text-slate-400">ML / AI</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 text-slate-100 group-hover:text-purple-400 transition-colors">Helix Autonomous CLI</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Command line agent capable of local self-debugging, project scaffolding, and semantic telemetry parsing.
+                    </p>
+                </div>
+                <a href="https://quantal-labs.com/helix-cli" target="_blank" class="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-purple-500/10 hover:text-purple-400 border border-slate-850 hover:border-purple-500/30 text-center font-medium text-sm text-slate-300 flex items-center justify-center gap-2 transition-all duration-200">
+                    <span>View Project</span>
+                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+        </div>
+
+        <!-- No Results Fallback -->
+        <div id="no-results" class="hidden flex-col items-center justify-center text-center py-20 bg-slate-950/40 rounded-3xl border border-slate-900">
+            <div class="p-4 bg-slate-900 rounded-full text-slate-500 mb-4">
+                <i data-lucide="info" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-1">No matching projects</h3>
+            <p class="text-slate-500 text-sm max-w-md">Try searching for other terms or selecting a different category filter.</p>
+        </div>
+
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="w-full border-t border-slate-900 py-8 bg-slate-950/60 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p class="text-xs text-slate-500">&copy; 2026 Quantal Labs. All rights reserved.</p>
+            <div class="flex gap-6 text-xs text-slate-400">
+                <a href="https://quantal-labs.com" class="hover:text-sky-400 transition-colors">Main Website</a>
+                <a href="https://quantal-labs.com/privacy" class="hover:text-sky-400 transition-colors">Privacy</a>
+                <a href="https://quantal-labs.com/contact" class="hover:text-sky-400 transition-colors">Contact</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts for UI Interaction -->
+    <script>
+        // Initialize Lucide SVG icons
+        lucide.createIcons();
+
+        // Project filtering logic
+        function filterProjects(category) {
+            const projects = document.querySelectorAll('.project-item');
+            const buttons = document.querySelectorAll('.filter-btn');
+            const searchInput = document.getElementById('search-input');
+            
+            // Reset search input on filter change
+            searchInput.value = '';
+
+            // Update active state of filter buttons
+            buttons.forEach(btn => {
+                if(btn.getAttribute('data-category') === category) {
+                    btn.className = "filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-sky-500 text-white shadow-lg shadow-sky-500/15 border border-sky-500/30 transition-all duration-200";
+                } else {
+                    btn.className = "filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-900/80 text-slate-400 border border-slate-800 hover:bg-slate-800/80 hover:text-white transition-all duration-200";
+                }
+            });
+
+            // Toggle visibility of items based on tag data attribute
+            let visibleCount = 0;
+            projects.forEach(project => {
+                const tags = project.getAttribute('data-tags');
+                if (category === 'all' || tags.includes(category)) {
+                    project.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    project.style.display = 'none';
+                }
+            });
+
+            toggleNoResults(visibleCount);
+        }
+
+        // Live text searching logic
+        function searchProjects() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const projects = document.querySelectorAll('.project-item');
+            
+            // Clear current selected active state on categories
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => {
+                if(btn.getAttribute('data-category') === 'all') {
+                    btn.className = "filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-sky-500 text-white shadow-lg shadow-sky-500/15 border border-sky-500/30 transition-all duration-200";
+                } else {
+                    btn.className = "filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-slate-900/80 text-slate-400 border border-slate-800 hover:bg-slate-800/80 hover:text-white transition-all duration-200";
+                }
+            });
+
+            let visibleCount = 0;
+            projects.forEach(project => {
+                const title = project.querySelector('h3').textContent.toLowerCase();
+                const desc = project.querySelector('p').textContent.toLowerCase();
+
+                if (title.includes(query) || desc.includes(query)) {
+                    project.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    project.style.display = 'none';
+                }
+            });
+
+            toggleNoResults(visibleCount);
+        }
+
+        // Handle empty states
+        function toggleNoResults(count) {
+            const noResults = document.getElementById('no-results');
+            if (count === 0) {
+                noResults.classList.remove('hidden');
+                noResults.classList.add('flex');
+            } else {
+                noResults.classList.add('hidden');
+                noResults.classList.remove('flex');
+            }
+        }
+    </script>
+</body>
+</html>
