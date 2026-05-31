@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurora BioSpace - Live Mirror</title>
+    <!-- Tailwind CSS for the control overlay -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Reset and prepare for full-screen viewports */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #0d1117;
+        }
+        
+        /* Shimmer loading animation */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .loading-shimmer {
+            background: linear-gradient(90deg, #0d1117 25%, #161b22 50%, #0d1117 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="text-white font-sans">
+
+    <!-- Loading Screen (Displayed until code is fetched & rendered) -->
+    <div id="loading-screen" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0d1117] transition-opacity duration-500">
+        <div class="loading-shimmer w-24 h-24 rounded-full mb-6 border border-emerald-500/30 flex items-center justify-center">
+            <svg class="w-12 h-12 text-emerald-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        </div>
+        <h1 class="text-xl font-medium tracking-wide text-emerald-400">Aurora BioSpace</h1>
+        <p class="text-sm text-gray-400 mt-2">Compiling live code from GitHub repository...</p>
+        <p class="text-xs text-gray-500 mt-1 italic font-mono">Codemaster-AR/Aurora-BioSpace/main/index.html</p>
+    </div>
+
+    <!-- Live Render Frame (Full Page Isolation) -->
+    <iframe id="live-frame" class="w-full h-full border-none absolute inset-0 z-1" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-modals"></iframe>
+
+    <!-- Floating Control Panel / Sync Hub -->
+    <div id="control-panel" class="fixed bottom-4 right-4 z-[10000] bg-zinc-900/90 backdrop-blur-md border border-zinc-700/50 rounded-xl shadow-2xl p-3 flex items-center gap-4 transition-all duration-300 hover:border-emerald-500/50 max-w-sm sm:max-w-md">
+        
+        <!-- Live Mirror Active Status - COMMENTED OUT 
+        <div class="flex items-center gap-2">
+            <span class="relative flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+            </span>
+            <div class="flex flex-col">
+                <span class="text-xs font-bold text-gray-300 tracking-wide uppercase">Live Mirror Active</span>
+                <span id="last-sync" class="text-[10px] text-gray-400 font-mono">Updating...</span>
+            </div>
+        </div>
+        -->
+
+        <!-- Vertical Divider Bar - COMMENTED OUT
+        <div class="h-6 w-[1px] bg-zinc-700"></div>
+        -->
+
+        <button id="sync-btn" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all duration-200 shadow-lg shadow-emerald-900/20 active:scale-95">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17"></path>
+            </svg>
+            Sync
+        </button>
+    </div>
+
+    <!-- Main Live Fetcher & Injector Script -->
+    <script>
+        // The GitHub REST API contents URL pointing directly to your index.html
+        const GITHUB_API_URL = 'https://api.github.com/repos/Codemaster-AR/Aurora-BioSpace/contents/index.html?ref=main';
+        
+        // Base URL for resolving relative file paths, styles, and assets
+        const BASE_ASSET_PATH = 'https://raw.githubusercontent.com/Codemaster-AR/Aurora-BioSpace/main/';
+
+        // Failover Proxy URL to bypass strict Sandboxed iframe network limitations if needed
+        const PROXY_URL = 'https://corsproxy.io/?' + encodeURIComponent(GITHUB_API_URL);
+
+        const liveFrame = document.getElementById('live-frame');
+        const loadingScreen = document.getElementById('loading-screen');
+        const lastSyncLabel = document.getElementById('last-sync');
+        const syncBtn = document.getElementById('sync-btn');
+
+        // Fetch and run the HTML directly inside the sandboxed iframe
+        async function fetchAndRender() {
+            try {
+                setLoadingState(true);
+                let response;
+                let data;
+
+                // 1. First Attempt: Direct Fetch to GitHub API
+                try {
+                    response = await fetch(`${GITHUB_API_URL}&t=${Date.now()}`);
+                    if (!response.ok) throw new Error('Direct API Fetch failed');
+                    data = await response.json();
+                } catch (directError) {
+                    console.warn("Direct fetch failed (likely CORS restriction). Swapping to Failover Proxy...", directError);
+                    
+                    // 2. Second Attempt (Failover): Fetch through CORS proxy
+                    response = await fetch(`${PROXY_URL}&t=${Date.now()}`);
+                    if (!response.ok) {
+                        throw new Error(`Failed to load index.html from both direct API and CORS proxy (Status: ${response.status})`);
+                    }
+                    data = await response.json();
+                }
+                
+                // Decode the base64 content safely (handling UTF-8 characters)
+                const base64Clean = data.content.replace(/\s/g, ''); // Remove whitespace/newlines from API payload
+                const binaryString = atob(base64Clean);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const rawHtml = new TextDecoder('utf-8').decode(bytes);
+
+                // Parse the document using DOMParser to modify/inject metadata
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(rawHtml, 'text/html');
+
+                // Crucial step: Inject a <base> element at the top of the <head>.
+                // This forces all relative assets (images, css files, js scripts) to load relative 
+                // to your GitHub repository folder, ensuring styling and layout render exactly as intended.
+                let baseElement = doc.querySelector('base');
+                if (!baseElement) {
+                    baseElement = doc.createElement('base');
+                    baseElement.setAttribute('href', BASE_ASSET_PATH);
+                    
+                    if (doc.head) {
+                        doc.head.insertBefore(baseElement, doc.head.firstChild);
+                    } else {
+                        // In case head doesn't exist, create one
+                        const head = doc.createElement('head');
+                        head.appendChild(baseElement);
+                        doc.documentElement.insertBefore(head, doc.documentElement.firstChild);
+                    }
+                } else {
+                    baseElement.setAttribute('href', BASE_ASSET_PATH);
+                }
+
+                // Compile the edited HTML back to string
+                const compiledHtml = doc.documentElement.outerHTML;
+
+                // Reset the iframe srcdoc to the compiled code
+                liveFrame.srcdoc = compiledHtml;
+
+                // Update page title matching the target's title
+                if (doc.title) {
+                    document.title = `${doc.title} (Live)`;
+                }
+
+                // Update sync timestamp (using optional chaining as the element is commented out)
+                const now = new Date();
+                if (lastSyncLabel) {
+                    lastSyncLabel.textContent = `Synced: ${now.toLocaleTimeString()}`;
+                }
+                
+                // Hide loading screen smoothly once the iframe signals loaded
+                liveFrame.onload = () => {
+                    setTimeout(() => {
+                        setLoadingState(false);
+                    }, 400);
+                };
+
+            } catch (error) {
+                console.error("Mirror Load Error: ", error);
+                if (lastSyncLabel) {
+                    lastSyncLabel.textContent = "Sync failed";
+                }
+                showSyncErrorModal(error.message);
+                setLoadingState(false);
+            }
+        }
+
+        function setLoadingState(isLoading) {
+            if (isLoading) {
+                loadingScreen.style.opacity = '1';
+                loadingScreen.style.pointerEvents = 'auto';
+                syncBtn.classList.add('animate-spin');
+            } else {
+                loadingScreen.style.opacity = '0';
+                loadingScreen.style.pointerEvents = 'none';
+                syncBtn.classList.remove('animate-spin');
+            }
+        }
+
+        function showSyncErrorModal(errorMessage) {
+            // Render an inline error alert instead of using blocking standard alert()
+            const errorBanner = document.createElement('div');
+            errorBanner.id = 'error-banner';
+            errorBanner.className = 'fixed top-4 left-4 right-4 z-[10001] bg-rose-950/90 border border-rose-500/50 backdrop-blur text-rose-200 p-4 rounded-xl shadow-2xl flex items-center justify-between gap-4';
+            errorBanner.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <svg class="w-6 h-6 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <div>
+                        <p class="font-bold text-sm">Synchronization Error</p>
+                        <p class="text-xs text-rose-300">${errorMessage}</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('error-banner').remove()" class="text-rose-300 hover:text-white text-xs font-semibold px-2 py-1 rounded bg-rose-900/50">Dismiss</button>
+            `;
+            document.body.appendChild(errorBanner);
+            setTimeout(() => {
+                if (document.getElementById('error-banner')) {
+                    document.getElementById('error-banner').remove();
+                }
+            }, 8000);
+        }
+
+        // Attach controller listeners
+        syncBtn.addEventListener('click', fetchAndRender);
+
+        // Run the fetch on initial load
+        window.addEventListener('DOMContentLoaded', fetchAndRender);
+    </script>
+</body>
+</html>
