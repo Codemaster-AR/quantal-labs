@@ -364,6 +364,11 @@
             console.log("ID: " + responsePayload.sub);
             console.log('Full Name: ' + responsePayload.name);
             console.log('Email: ' + responsePayload.email);
+            
+            // UI Transition after sign-in
+            document.getElementById('google-signin-container').classList.add('hidden');
+            document.getElementById('dashboard-link').classList.remove('hidden');
+            
             alert(`Welcome, ${responsePayload.name}!`);
         }
 
@@ -374,6 +379,14 @@
                 return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
             }).join(''));
             return JSON.parse(jsonPayload);
+        }
+
+        resize();
+        animate();
+    </script>
+</body>
+</html>
+n JSON.parse(jsonPayload);
         }
 
         resize();
