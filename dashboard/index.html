@@ -1,1 +1,196 @@
-Redirect
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/Codemaster-AR/quantal/main/Logos/ICO/logoico/favicon.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantal Dashboard - Systems Active</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;600;800&display=swap');
+
+        :root {
+            --bg-deep: #02040a;
+            --liquid-1: #4338ca;
+            --liquid-2: #7e22ce;
+            --liquid-3: #be185d;
+            --glass-blur: blur(60px) saturate(220%);
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #visual-canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .liquid-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            mix-blend-mode: screen;
+            opacity: 0.3;
+            animation: move 20s infinite alternate;
+        }
+
+        @keyframes move {
+            from { transform: translate(0, 0); }
+            to { transform: translate(100px, 100px); }
+        }
+
+        .liquid-glass {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2.5rem;
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.2);
+            object-fit: cover;
+            box-shadow: 0 0 20px rgba(67, 56, 202, 0.4);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            box-shadow: 0 0 10px #10b981;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <div id="visual-canvas-container">
+        <div class="liquid-blob" style="width: 600px; height: 600px; background: var(--liquid-1); top: -100px; left: -100px;"></div>
+        <div class="liquid-blob" style="width: 500px; height: 500px; background: var(--liquid-2); bottom: -100px; right: -100px; animation-delay: -5s;"></div>
+    </div>
+
+    <div class="w-full max-w-4xl px-6">
+        <div class="liquid-glass p-12 relative overflow-hidden">
+            <!-- Top bar -->
+            <div class="flex justify-between items-start mb-16">
+                <div>
+                    <div class="text-indigo-400 text-[10px] font-black tracking-[0.5em] uppercase mb-2">Systems Online</div>
+                    <h1 class="text-4xl font-extrabold tracking-tighter">Command Center</h1>
+                </div>
+                <button onclick="signOut()" class="px-6 py-3 liquid-glass text-[10px] font-black uppercase tracking-widest border border-white/10 hover:border-white/30 transition-all">
+                    Disconnect
+                </button>
+            </div>
+
+            <!-- Profile Section -->
+            <div class="flex flex-col md:flex-row items-center gap-12 mb-16">
+                <img id="user-picture" src="https://via.placeholder.com/100" alt="Profile" class="profile-img">
+                <div class="text-center md:text-left">
+                    <h2 id="user-name" class="text-5xl font-extrabold tracking-tighter mb-2">Loading...</h2>
+                    <p id="user-email" class="text-white/40 text-lg font-light mb-6">Identifying terminal...</p>
+                    <div class="flex gap-4 justify-center md:justify-start">
+                        <span class="px-4 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest flex items-center">
+                            <span class="status-dot"></span> Account Synced
+                        </span>
+                        <span class="px-4 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest">
+                            Beta Access
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5">
+                    <h3 class="text-sm font-black uppercase tracking-widest text-indigo-400 mb-4">Cloud Data</h3>
+                    <p class="text-white/40 text-sm leading-relaxed mb-6">Your preferences and session data are automatically encrypted and synced with your Quantal identity.</p>
+                    <div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+                        <div class="bg-indigo-500 h-full w-2/3"></div>
+                    </div>
+                </div>
+                <div class="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-black uppercase tracking-widest text-purple-400 mb-4">Active Projects</h3>
+                        <p class="text-white/40 text-sm">No active deployments found. Visit the Lab to initiate.</p>
+                    </div>
+                    <a href="../beta-website/index.html" class="mt-6 text-[10px] font-black uppercase tracking-widest text-white hover:text-indigo-400 transition-all">
+                        Return to Lab <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-10 text-center opacity-20 text-[9px] font-bold tracking-[0.4em] uppercase">
+            © 2026 Quantal-labs - Secure Terminal
+        </div>
+    </div>
+
+    <script>
+        // Automatic Login & Persistence Logic
+        function initDashboard() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // 1. Get data from URL
+            const urlData = {
+                name: urlParams.get('name'),
+                email: urlParams.get('email'),
+                picture: urlParams.get('picture')
+            };
+
+            // 2. Check LocalStorage if URL is empty
+            const storedData = JSON.parse(localStorage.getItem('quantal_user'));
+
+            let userData = null;
+
+            if (urlData.name && urlData.email) {
+                // New login from website
+                userData = urlData;
+                localStorage.setItem('quantal_user', JSON.stringify(userData));
+                // Clean URL for aesthetics
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else if (storedData) {
+                // Persistent session
+                userData = storedData;
+            }
+
+            // 3. Apply to UI or Redirect if not logged in
+            if (userData) {
+                document.getElementById('user-name').innerText = userData.name;
+                document.getElementById('user-email').innerText = userData.email;
+                if (userData.picture && userData.picture !== 'null') {
+                    document.getElementById('user-picture').src = userData.picture;
+                }
+            } else {
+                // No login found - send back to home
+                window.location.href = '../beta-website/index.html';
+            }
+        }
+
+        function signOut() {
+            localStorage.removeItem('quantal_user');
+            window.location.href = '../beta-website/index.html';
+        }
+
+        // Initialize on load
+        window.onload = initDashboard;
+    </script>
+</body>
+</html>
