@@ -145,48 +145,39 @@
 
     <script>
         // Automatic Login & Persistence Logic
-        function initDashboard() {
-            const urlParams = new URLSearchParams(window.location.search);
-            
-            // 1. Get data from URL
-            const urlData = {
-                name: urlParams.get('name'),
-                email: urlParams.get('email'),
-                picture: urlParams.get('picture')
-            };
+        async function initDashboard() {
+            try {
+                // Fetch user data from the authentication server
+                const res = await fetch('https://authentication.quantal-labs.com/verify', {
+                    credentials: 'include'
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    const userData = data.user;
 
-            // 2. Check LocalStorage if URL is empty
-            const storedData = JSON.parse(localStorage.getItem('quantal_user'));
-
-            let userData = null;
-
-            if (urlData.name && urlData.email) {
-                // New login from website
-                userData = urlData;
-                localStorage.setItem('quantal_user', JSON.stringify(userData));
-                // Clean URL for aesthetics
-                window.history.replaceState({}, document.title, window.location.pathname);
-            } else if (storedData) {
-                // Persistent session
-                userData = storedData;
-            }
-
-            // 3. Apply to UI or Redirect if not logged in
-            if (userData) {
-                document.getElementById('user-name').innerText = userData.name;
-                document.getElementById('user-email').innerText = userData.email;
-                if (userData.picture && userData.picture !== 'null') {
-                    document.getElementById('user-picture').src = userData.picture;
+                    // Apply to UI
+                    document.getElementById('user-name').innerText = userData.username;
+                    document.getElementById('user-email').innerText = userData.email;
+                    
+                    // Generate a consistent identicon or fallback for picture
+                    const initial = userData.username.charAt(0).toUpperCase();
+                    document.getElementById('user-picture').src = `https://ui-avatars.com/api/?name=${userData.username}&background=4338ca&color=fff&size=128`;
+                    
+                } else {
+                    // No login found - send back to home
+                    window.location.href = 'https://quantal-labs.com';
                 }
-            } else {
-                // No login found - send back to home
+            } catch (err) {
+                console.error("Dashboard error:", err);
                 window.location.href = 'https://quantal-labs.com';
             }
         }
 
-        function signOut() {
-            localStorage.removeItem('quantal_user');
-            window.location.href = 'https://quantal-labs.com';
+        async function signOut() {
+            // To sign out, we need the server to clear the httpOnly cookie
+            // or we redirect to a logout endpoint on the auth server
+            window.location.href = 'https://authentication.quantal-labs.com/logout';
         }
 
         // Initialize on load
