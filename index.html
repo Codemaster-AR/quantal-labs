@@ -352,22 +352,30 @@
             requestAnimationFrame(animate);
         }
 
-        function checkAuth() {
-            const hasToken = document.cookie.split(';').some((item) => item.trim().startsWith('auth_token='));
-            if (hasToken) {
-                const signinBtn = document.getElementById('signin-nav-btn');
-                const dashboardLink = document.getElementById('dashboard-link');
-                const heroBtn = document.getElementById('hero-action-btn');
+        async function checkAuth() {
+            try {
+                // We must fetch from the auth server to verify the httpOnly cookie
+                const res = await fetch('https://authentication.quantal-labs.com/verify', {
+                    credentials: 'include'
+                });
+                
+                if (res.ok) {
+                    const signinBtn = document.getElementById('signin-nav-btn');
+                    const dashboardLink = document.getElementById('dashboard-link');
+                    const heroBtn = document.getElementById('hero-action-btn');
 
-                if (signinBtn) signinBtn.classList.add('hidden');
-                if (dashboardLink) {
-                    dashboardLink.classList.remove('hidden');
-                    dashboardLink.classList.add('flex');
+                    if (signinBtn) signinBtn.classList.add('hidden');
+                    if (dashboardLink) {
+                        dashboardLink.classList.remove('hidden');
+                        dashboardLink.classList.add('flex');
+                    }
+                    if (heroBtn) {
+                        heroBtn.innerText = "Visit Dashboard";
+                        heroBtn.href = "https://quantal-labs.com/dashboard";
+                    }
                 }
-                if (heroBtn) {
-                    heroBtn.innerText = "Visit Dashboard";
-                    heroBtn.href = "https://quantal-labs.com/dashboard";
-                }
+            } catch (err) {
+                console.log("Auth check unavailable");
             }
         }
 
