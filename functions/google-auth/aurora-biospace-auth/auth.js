@@ -1,14 +1,11 @@
 export async function onRequestPost(context) {
   const corsHeaders = {
-    "Access-Control-Allow-Origin": "*", // Allows your desktop app to call this endpoint
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
 
-  // 1. Hardcoded Client ID specific to Aurora-Biospace
   const clientId = "1073478097806-e1uppnsvsmddbqp1hifdt2s8iqjrp7ns.apps.googleusercontent.com";
-
-  // 2. Safely extract the secret from your Cloudflare project settings
   const clientSecret = context.env['aurora-biospace-google-auth-client-secret'];
   
   if (!clientSecret) {
@@ -19,17 +16,17 @@ export async function onRequestPost(context) {
   }
 
   try {
-    // 3. The desktop app now only needs to send the code and redirectUri!
-    const { code, redirectUri } = await context.request.json();
+    // 1. ADD codeVerifier to the extracted properties from the desktop request
+    const { code, redirectUri, codeVerifier } = await context.request.json();
 
-    if (!code || !redirectUri) {
+    if (!code || !redirectUri || !codeVerifier) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: code or redirectUri" }), 
+        JSON.stringify({ error: "Missing required fields: code, redirectUri, or codeVerifier" }), 
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 4. Send the completely constructed token request to Google
+    // 2. Pass code_verifier onto Google
     const googleResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: {
@@ -37,16 +34,16 @@ export async function onRequestPost(context) {
       },
       body: new URLSearchParams({
         code: code,
-        client_id: clientId,         // Provided automatically by the server
-        client_secret: clientSecret, // Provided automatically by the server
+        client_id: clientId,
+        client_secret: clientSecret,
         redirect_uri: redirectUri,
+        code_verifier: codeVerifier, // <-- Google requires this to validate the PKCE handshake!
         grant_type: "authorization_code",
       }),
     });
 
     const tokens = await googleResponse.json();
 
-    // 5. Send the final tokens back to your app
     return new Response(JSON.stringify(tokens), {
       status: googleResponse.status,
       headers: { 
@@ -63,7 +60,6 @@ export async function onRequestPost(context) {
   }
 }
 
-// Handle preflight OPTIONS requests for CORS compliance
 export async function onRequestOptions() {
   return new Response(null, {
     status: 204,
