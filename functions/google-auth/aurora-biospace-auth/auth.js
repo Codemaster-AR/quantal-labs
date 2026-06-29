@@ -1,33 +1,35 @@
 export async function onRequestPost(context) {
-  // 1. Set up CORS headers
   const corsHeaders = {
-    "Access-Control-Allow-Origin": "*", 
+    "Access-Control-Allow-Origin": "*", // Allows your desktop app to call this endpoint
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
   };
 
-  // 2. Safely extract your newly named secret using bracket notation
+  // 1. Hardcoded Client ID specific to Aurora-Biospace
+  const clientId = "1073478097806-e1uppnsvsmddbqp1hifdt2s8iqjrp7ns.apps.googleusercontent.com";
+
+  // 2. Safely extract the secret from your Cloudflare project settings
   const clientSecret = context.env['aurora-biospace-google-auth-client-secret'];
   
   if (!clientSecret) {
     return new Response(
-      JSON.stringify({ error: "Server error: Secret key is not configured." }), 
+      JSON.stringify({ error: "Server error: Secret key configuration missing." }), 
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 
   try {
-    // 3. Parse the temporary authorization code, Client ID, and redirect URI sent by the desktop app
-    const { code, clientId, redirectUri } = await context.request.json();
+    // 3. The desktop app now only needs to send the code and redirectUri!
+    const { code, redirectUri } = await context.request.json();
 
-    if (!code || !clientId || !redirectUri) {
+    if (!code || !redirectUri) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: code, clientId, or redirectUri" }), 
+        JSON.stringify({ error: "Missing required fields: code or redirectUri" }), 
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 4. Send the payload securely from Cloudflare to Google's token endpoint
+    // 4. Send the completely constructed token request to Google
     const googleResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: {
@@ -35,8 +37,8 @@ export async function onRequestPost(context) {
       },
       body: new URLSearchParams({
         code: code,
-        client_id: clientId,
-        client_secret: clientSecret, // Safely passed behind the scenes
+        client_id: clientId,         // Provided automatically by the server
+        client_secret: clientSecret, // Provided automatically by the server
         redirect_uri: redirectUri,
         grant_type: "authorization_code",
       }),
@@ -44,7 +46,7 @@ export async function onRequestPost(context) {
 
     const tokens = await googleResponse.json();
 
-    // 5. Send the access/refresh tokens back to your Aurora-Biospace app
+    // 5. Send the final tokens back to your app
     return new Response(JSON.stringify(tokens), {
       status: googleResponse.status,
       headers: { 
