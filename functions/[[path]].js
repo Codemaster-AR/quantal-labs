@@ -5,19 +5,23 @@ export async function onRequest(context) {
     // 1. Try to fetch the live asset/tunnel route
     const response = await context.next();
 
-    // 2. If the tunnel is offline (502/542) or throwing server errors, catch it
-    if (response.status >= 500 && response.status <= 542) {
+    // 2. Catch Error 1033 (often returns a 502 or 403 status with Cloudflare headers)
+    // or any standard tunnel timeout status codes (500-542)
+    const isCloudflareError = response.status >= 500 && response.status <= 542;
+    const isTunnelDown = response.status === 403 || response.status === 502; // 1033 can present as these statuses initially
+
+    if (isCloudflareError || isTunnelDown) {
       return returnMaintenancePage();
     }
 
     return response;
   } catch (err) {
-    // 3. Fallback if the connection fails entirely
+    // 3. Fallback if the connection completely snaps or drops mid-request
     return returnMaintenancePage();
   }
 }
 
-// Your dark-mode glassmorphic maintenance layout
+// Your dark-mode glassmorphic maintenance layout remains exactly the same below...
 function returnMaintenancePage() {
   const html = `
   <!DOCTYPE html>
