@@ -1,29 +1,27 @@
 export async function onRequest(context) {
-  const { request } = context;
-
   try {
-    // 1. Try to fetch the live asset/tunnel route
+    // 1. Force fetch to pull the asset target
     const response = await context.next();
 
-    // 2. Catch Error 1033 (often returns a 502 or 403 status with Cloudflare headers)
-    // or any standard tunnel timeout status codes (500-542)
-    const isCloudflareError = response.status >= 500 && response.status <= 542;
-    const isTunnelDown = response.status === 403 || response.status === 502; // 1033 can present as these statuses initially
+    // 2. Check the response body or headers. 
+    // When Cloudflare intercepts with a 1033 page, it drops its own specific server tracking headers
+    const text = await response.clone().text();
+    const isCFErrorPage = text.includes("error code: 1033") || text.includes("Argo Tunnel error");
 
-    if (isCloudflareError || isTunnelDown) {
+    if (isCFErrorPage || response.status >= 500) {
       return returnMaintenancePage();
     }
 
     return response;
   } catch (err) {
-    // 3. Fallback if the connection completely snaps or drops mid-request
+    // 3. Absolute fallback if the runtime context breaks completely
     return returnMaintenancePage();
   }
 }
 
-// Your dark-mode glassmorphic maintenance layout remains exactly the same below...
+// Your beautiful dark-mode layout remains right here
 function returnMaintenancePage() {
-  const html = `
+  return new Response(`
   <!DOCTYPE html>
   <html lang="en">
   <head>
@@ -59,9 +57,7 @@ function returnMaintenancePage() {
     </div>
   </body>
   </html>
-  `;
-  
-  return new Response(html, {
+  `, {
     status: 503,
     headers: { 'Content-Type': 'text/html;charset=UTF-8' }
   });
