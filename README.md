@@ -17,7 +17,7 @@ To explore our work, projects, and latest updates, please visit our main portal:
 [Click here to open the README](https://github.com/Quantal-Labs/quantal-labs/blob/main/README.md)
 
 ## Main account
-[Quantal Labs on Github](github.com/quantal-labs](https://github.com/quantal-labs)
+[Quantal Labs on Github](https://github.com/quantal-labs)
 
 ## 📞 Connect with Us
 Have questions or want to collaborate? Use the link above to visit our official website and get in touch [here](contact@quantal-labs.com). 
