@@ -20,4 +20,4 @@ To explore our work, projects, and latest updates, please visit our main portal:
 [Quantal Labs on Github[([github.com/quantal-labs](https://github.com/quantal-labs))
 
 ## 📞 Connect with Us
-Have questions or want to collaborate? Use the link above to visit our official website and get in touch [here](contact@quantal-labs.com) 
+Have questions or want to collaborate? Use the link above to visit our official website and get in touch [here](contact@quantal-labs.com). 
