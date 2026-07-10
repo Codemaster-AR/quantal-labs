@@ -13,13 +13,11 @@ To explore our work, projects, and latest updates, please visit our main portal:
 
 ---
 
-## 🚀 About Quantal Labs
-Quantal Labs is focused on cutting-edge research, development, and engineering solutions. 
+## More information
+[Click here to open the README](https://github.com/Quantal-Labs/quantal-labs/blob/main/README.md]
 
-## 🛠️ Features
-- **Innovation-first Approach:** Pioneering solutions for modern engineering challenges.
-- **Open Source:** Proud contributors to the developer community.
-- **Collaboration:** Partnering with industry leaders to bring ideas to life.
+## Main account
+[Quantal Labs on Github[([github.com/quantal-labs](https://github.com/quantal-labs))
 
 ## 📞 Connect with Us
-Have questions or want to collaborate? Use the link above to visit our official website and get in touch!
+Have questions or want to collaborate? Use the link above to visit our official website and get in touch [here](contact@quantal-labs.com) 
