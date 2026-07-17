@@ -1,64 +1,78 @@
 export async function onRequest(context) {
+  const { request, env } = context;
+  // Change this to your exact home server's cloudflare tunnel backend URL
+  const localTunnelBackend = "https://your-local-tunnel-id.cfargotunnel.com";
+  const url = new URL(request.url);
+
   try {
-    // 1. Force fetch to pull the asset target
-    const response = await context.next();
+    // 1. Forward the traffic to your home computer first
+    const targetUrl = localTunnelBackend + url.pathname + url.search;
+    const response = await fetch(targetUrl, {
+      method: request.method,
+      headers: request.headers,
+      body: request.method !== 'GET' && request.method !== 'HEAD' ? await request.clone().text() : null,
+      redirect: 'manual'
+    });
 
-    // 2. Check the response body or headers. 
-    // When Cloudflare intercepts with a 1033 page, it drops its own specific server tracking headers
-    const text = await response.clone().text();
-    const isCFErrorPage = text.includes("error code: 1033") || text.includes("Argo Tunnel error");
-
-    if (isCFErrorPage || response.status >= 500) {
-      return returnMaintenancePage();
+    // If your local machine throws an error code (Tunnel Down, Timeout, Server Crash)
+    if (response.status === 502 || response.status === 504 || response.status === 522 || response.status === 523) {
+      return await handleEdgeAuthFallback(request, env, url, context);
     }
 
     return response;
-  } catch (err) {
-    // 3. Absolute fallback if the runtime context breaks completely
-    return returnMaintenancePage();
+
+  } catch (error) {
+    // 2. If your computer is turned off completely, catch block executes the edge backup
+    return await handleEdgeAuthFallback(request, env, url, context);
   }
 }
 
-// Your beautiful dark-mode layout remains right here
-function returnMaintenancePage() {
-  return new Response(`
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantal Labs | Maintenance</title>
-    <style>
-      body {
-        margin: 0; padding: 0; display: flex; justify-content: center; align-items: center;
-        height: 100vh; background: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #fff;
+// 3. Cloudflare Edge Fallback Engine
+async function handleEdgeAuthFallback(request, env, url, context) {
+  
+  // A. STATIC FILES: Serve the standard public HTML files natively from your Pages project
+  if (!url.pathname.startsWith("/api/")) {
+    return await context.next(); 
+  }
+
+  // B. LOGIN ROUTE BACKUP: Process verification directly on Cloudflare using D1 SQL
+  if (url.pathname === "/api/login" && request.method === "POST") {
+    try {
+      const { username, password } = await request.json();
+      const { results } = await env.DB.prepare(
+        "SELECT * FROM users WHERE username = ? LIMIT 1"
+      ).bind(username).all();
+
+      if (results && results.length > 0) {
+        const user = results[0];
+        // Match your password verification format here
+        if (password === user.password_hash) {
+          return new Response(JSON.stringify({ 
+            success: true, 
+            source: "Cloudflare Edge Engine (Backup Mode)",
+            user: { username: user.username } 
+          }), { headers: { "Content-Type": "application/json" } });
+        }
       }
-      .card {
-        text-align: center; padding: 40px; border-radius: 24px;
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5); max-width: 450px; margin: 20px;
-      }
-      h1 { font-size: 2rem; margin-bottom: 10px; color: #3b82f6; font-weight: 700; letter-spacing: -0.5px; }
-      p { color: #9ca3af; line-height: 1.6; font-size: 1.05rem; }
-      .date {
-        display: inline-block; margin-top: 20px; padding: 8px 16px; 
-        background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2);
-        border-radius: 30px; color: #60a5fa; font-weight: 600; font-size: 0.9rem;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <h1>Quantal Labs</h1>
-      <p>ez-chat is currently undergoing planned system infrastructure optimizations and upgrades.</p>
-      <div class="date">Estimated Return: August 1st</div>
-    </div>
-  </body>
-  </html>
-  `, {
-    status: 503,
-    headers: { 'Content-Type': 'text/html;charset=UTF-8' }
-  });
+      return new Response(JSON.stringify({ success: false, error: "Invalid credentials" }), { status: 401 });
+    } catch (e) {
+      return new Response(JSON.stringify({ error: "Edge DB Failover Error" }), { status: 500 });
+    }
+  }
+
+  // C. SIGNUP ROUTE BACKUP: Push new user registrations straight to the cloud D1 database
+  if (url.pathname === "/api/signup" && request.method === "POST") {
+    try {
+      const { username, email, password } = await request.json();
+      await env.DB.prepare(
+        "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)"
+      ).bind(username, email, password).run();
+
+      return new Response(JSON.stringify({ success: true, message: "Registered on Cloudflare Edge!" }), { status: 201 });
+    } catch (e) {
+      return new Response(JSON.stringify({ success: false, error: "Username or Email already exists" }), { status: 400 });
+    }
+  }
+
+  return new Response("Quantal Labs Backup Node: Resource Not Found", { status: 404 });
 }
