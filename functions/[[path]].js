@@ -1,6 +1,6 @@
 export async function onRequest(context) {
   const { request, env } = context;
-  // Change this to your exact home server's cloudflare tunnel backend URL
+  // Your exact home server's cloudflare tunnel backend URL
   const localTunnelBackend = "https://authentication.quantal-labs.com";
   const url = new URL(request.url);
 
@@ -14,8 +14,8 @@ export async function onRequest(context) {
       redirect: 'manual'
     });
 
-    // If your local machine throws an error code (Tunnel Down, Timeout, Server Crash)
-    if (response.status === 530 || response.status === 502 || response.status === 504 || response.status === 522 || response.status === 523) {
+    // BULLETPROOF CHECK: Catch ANY server error or Cloudflare tunnel error (500 through 599)
+    if (response.status >= 500) {
       return await handleEdgeAuthFallback(request, env, url, context);
     }
 
