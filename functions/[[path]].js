@@ -1,7 +1,7 @@
 export async function onRequest(context) {
   const { request, env } = context;
   // Change this to your exact home server's cloudflare tunnel backend URL
-  const localTunnelBackend = "https://your-local-tunnel-id.cfargotunnel.com";
+  const localTunnelBackend = "https://authentication.quantal-labs.com";
   const url = new URL(request.url);
 
   try {
