@@ -15,7 +15,7 @@ export async function onRequest(context) {
     });
 
     // If your local machine throws an error code (Tunnel Down, Timeout, Server Crash)
-    if (response.status === 502 || response.status === 504 || response.status === 522 || response.status === 523) {
+    if (response.status === 530 || response.status === 502 || response.status === 504 || response.status === 522 || response.status === 523) {
       return await handleEdgeAuthFallback(request, env, url, context);
     }
 
