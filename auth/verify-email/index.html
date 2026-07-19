@@ -1,1 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email - Quantal Labs</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #0e1117; color: white; }
+        .card { background: #161b22; padding: 30px; border-radius: 12px; width: 350px; text-align: center; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: white; }
+        button { width: 100%; padding: 10px; background: #238636; border: none; border-radius: 6px; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Verify Email</h2>
+        <p id="msg">Check your email (and spam!) for the code.</p>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="text" id="code" placeholder="6-digit code" required maxlength="6">
+        <button onclick="verify()">Verify</button>
+        <button id="resendBtn" onclick="resend()" style="margin-top: 10px; background: #6366f1;">Resend Code</button>
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectUrl = urlParams.get('redirect') || '/login';
+        const emailFromUrl = urlParams.get('email');
+        const resendBtn = document.getElementById('resendBtn');
+        const emailInput = document.getElementById('email');
 
+        // Redirect if no email is provided
+        if (!emailFromUrl) {
+            window.location.href = '/login';
+        } else {
+            emailInput.value = emailFromUrl;
+            // Automatically trigger send on load if we have email
+            window.onload = () => resend();
+        }
+
+        async function verify() {
+            const email = document.getElementById('email').value;
+            const code = document.getElementById('code').value;
+            const res = await fetch('/verify-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, code })
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (res.ok) window.location.href = redirectUrl;
+        }
+
+        async function resend() {
+            const email = document.getElementById('email').value;
+            if(!email) return alert("Please enter email first");
+            
+            resendBtn.disabled = true;
+            let counter = 45;
+            resendBtn.textContent = `Resend in ${counter}s`;
+            
+            const interval = setInterval(() => {
+                counter--;
+                resendBtn.textContent = `Resend in ${counter}s`;
+                if(counter <= 0) {
+                    clearInterval(interval);
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = 'Resend Code';
+                }
+            }, 1000);
+
+            const res = await fetch('/resend-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            alert(data.message);
+        }
+    </script>
+</body>
+</html>
