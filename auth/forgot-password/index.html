@@ -1,1 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password | Quantal Labs</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary-accent: #6366f1;
+            --primary-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
 
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .auth-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            padding: 2.5rem;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        h2 { margin-bottom: 1rem; }
+
+        .input-group { margin-bottom: 1.25rem; }
+
+        label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; }
+
+        input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: #fff;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary-accent);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Forgot Password</h2>
+        <form id="forgotForm">
+            <div id="step1">
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <button type="submit" class="btn-submit">Send Code</button>
+            </div>
+            
+            <div id="step2" style="display:none;">
+                <div class="input-group">
+                    <label for="code">Verification Code</label>
+                    <input type="text" id="code" name="code" maxlength="6">
+                </div>
+                <div class="input-group">
+                    <label for="password">New Password</label>
+                    <input type="password" id="password" name="password">
+                </div>
+                <button type="button" onclick="resetPassword()" class="btn-submit">Reset Password</button>
+            </div>
+        </form>
+        <p style="margin-top: 1rem; font-size: 0.85rem;"><a href="/login" style="color: var(--primary-accent);">Back to Login</a></p>
+    </div>
+
+    <script>
+        document.getElementById('forgotForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const response = await fetch('/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await response.json();
+            alert(data.message);
+            if (response.ok) {
+                document.getElementById('step1').style.display = 'none';
+                document.getElementById('step2').style.display = 'block';
+            }
+        });
+
+        async function resetPassword() {
+            const email = document.getElementById('email').value;
+            const code = document.getElementById('code').value;
+            const password = document.getElementById('password').value;
+            
+            if (!code || !password) {
+                alert("Please enter both the verification code and your new password.");
+                return;
+            }
+            
+            const response = await fetch('/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, code, password })
+            });
+            const data = await response.json();
+            alert(data.message);
+            if (response.ok) window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>
