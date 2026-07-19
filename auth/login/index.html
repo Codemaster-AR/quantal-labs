@@ -183,17 +183,19 @@
                 Don't have an account? <a id="signup-link" href="/signup">Sign up</a>
                 <div style="margin-top: 10px; opacity: 0.3; font-size: 10px;">Quantal SSO v2.5 (Subdomain Enabled)</div>
             </div>
-            </div>
+        </div>
+    </div>
 
-            <script>
-                console.log("DEBUG: Current URL in address bar:", window.location.href);
-                // Set redirect on signup link if present
-                const urlParams = new URLSearchParams(window.location.search);            const redirect = urlParams.get('redirect');
-            if (redirect) {
-                document.getElementById('signup-link').href = `/signup?redirect=${encodeURIComponent(redirect)}`;
-            }
+    <script>
+        console.log("DEBUG: Current URL in address bar:", window.location.href);
+        // Set redirect on signup link if present
+        const urlParams = new URLSearchParams(window.location.search);            
+        const redirect = urlParams.get('redirect');
+        if (redirect) {
+            document.getElementById('signup-link').href = `/signup?redirect=${encodeURIComponent(redirect)}`;
+        }
 
-            const canvas = document.getElementById('particle-canvas');
+        const canvas = document.getElementById('particle-canvas');
         const ctx = canvas.getContext('2d');
 
         let particles = [];
@@ -308,16 +310,18 @@
                     }
                     
                     window.location.href = redirectUrl;
-                } else if (response.status === 401 && data.message.includes('Email not verified')) {
+                } else if (response.status === 401 && data.message && data.message.includes('Email not verified')) {
                     alert(data.message);
                     const urlParams = new URLSearchParams(window.location.search);
                     const redirect = urlParams.get('redirect');
                     window.location.href = `/verify-email.html?email=${encodeURIComponent(username)}&redirect=${encodeURIComponent(redirect || 'https://quantal-labs.com')}`;
                 } else {
-                    alert(data.message || 'Error logging in');
+                    // Check for backend error payload first, fallback to generic message
+                    alert(data.error || data.message || 'Error logging in');
                 }
             } catch (err) {
                 console.error(err);
+                alert("Network error. Please try again.");
             }
         });
     </script>
