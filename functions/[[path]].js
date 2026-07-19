@@ -1,78 +1,56 @@
-export async function onRequest(context) {
-  const { request, env } = context;
-  // Your exact home server's cloudflare tunnel backend URL
-  const localTunnelBackend = "https://authentication.quantal-labs.com";
-  const url = new URL(request.url);
-
-  try {
-    // 1. Forward the traffic to your home computer first
-    const targetUrl = localTunnelBackend + url.pathname + url.search;
-    const response = await fetch(targetUrl, {
-      method: request.method,
-      headers: request.headers,
-      body: request.method !== 'GET' && request.method !== 'HEAD' ? await request.clone().text() : null,
-      redirect: 'manual'
-    });
-
-    // BULLETPROOF CHECK: Catch ANY server error or Cloudflare tunnel error (500 through 599)
-    if (response.status >= 500) {
-      return await handleEdgeAuthFallback(request, env, url, context);
-    }
-
-    return response;
-
-  } catch (error) {
-    // 2. If your computer is turned off completely, catch block executes the edge backup
-    return await handleEdgeAuthFallback(request, env, url, context);
-  }
+// Lightweight hashing for Edge
+async function hashPasswordEdge(password) {
+  const msgBuffer = new TextEncoder().encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// 3. Cloudflare Edge Fallback Engine
+export async function onRequest(context) {
+  const { request, env } = context;
+  const url = new URL(request.url);
+
+  // A. ROUTE: API Calls (Always handle these via the Edge/D1)
+  if (url.pathname.startsWith("/api/")) {
+    return await handleEdgeAuthFallback(request, env, url, context);
+  }
+
+  // B. ROUTE: Static Pages (Serve from /auth/ folder)
+  let targetAssetPath = url.pathname;
+  if (url.pathname === "/" || url.pathname === "") targetAssetPath = "/auth/index.html";
+  else if (url.pathname.startsWith("/login")) targetAssetPath = "/auth/login/index.html";
+  else if (url.pathname.startsWith("/signup")) targetAssetPath = "/auth/signup/index.html";
+  else targetAssetPath = `/auth${url.pathname}`;
+
+  return await env.ASSETS.fetch(new Request(new URL(targetAssetPath, request.url), request));
+}
+
 async function handleEdgeAuthFallback(request, env, url, context) {
-  
-  // A. STATIC FILES: Serve the standard public HTML files natively from your Pages project
-  if (!url.pathname.startsWith("/api/")) {
-    return await context.next(); 
-  }
+  const corsHeaders = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
 
-  // B. LOGIN ROUTE BACKUP: Process verification directly on Cloudflare using D1 SQL
-  if (url.pathname === "/api/login" && request.method === "POST") {
-    try {
-      const { username, password } = await request.json();
-      const { results } = await env.DB.prepare(
-        "SELECT * FROM users WHERE username = ? LIMIT 1"
-      ).bind(username).all();
-
-      if (results && results.length > 0) {
-        const user = results[0];
-        // Match your password verification format here
-        if (password === user.password_hash) {
-          return new Response(JSON.stringify({ 
-            success: true, 
-            source: "Cloudflare Edge Engine (Backup Mode)",
-            user: { username: user.username } 
-          }), { headers: { "Content-Type": "application/json" } });
-        }
-      }
-      return new Response(JSON.stringify({ success: false, error: "Invalid credentials" }), { status: 401 });
-    } catch (e) {
-      return new Response(JSON.stringify({ error: "Edge DB Failover Error" }), { status: 500 });
-    }
-  }
-
-  // C. SIGNUP ROUTE BACKUP: Push new user registrations straight to the cloud D1 database
+  // SIGNUP API
   if (url.pathname === "/api/signup" && request.method === "POST") {
+    const { username, email, password } = await request.json();
+    const edgeHash = await hashPasswordEdge(password);
+    
     try {
-      const { username, email, password } = await request.json();
-      await env.DB.prepare(
-        "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)"
-      ).bind(username, email, password).run();
-
-      return new Response(JSON.stringify({ success: true, message: "Registered on Cloudflare Edge!" }), { status: 201 });
+      await env.DB.prepare("INSERT INTO Users (username, email, passwordHash) VALUES (?, ?, ?)")
+        .bind(username.toLowerCase(), email.toLowerCase(), edgeHash).run();
+      return new Response(JSON.stringify({ success: true }), { status: 201, headers: corsHeaders });
     } catch (e) {
-      return new Response(JSON.stringify({ success: false, error: "Username or Email already exists" }), { status: 400 });
+      return new Response(JSON.stringify({ error: "User exists" }), { status: 400, headers: corsHeaders });
     }
   }
 
-  return new Response("Quantal Labs Backup Node: Resource Not Found", { status: 404 });
+  // LOGIN API
+  if (url.pathname === "/api/login" && request.method === "POST") {
+    const { username, password } = await request.json();
+    const user = await env.DB.prepare("SELECT * FROM Users WHERE username = ?").bind(username.toLowerCase()).first();
+    
+    if (user && user.passwordHash === await hashPasswordEdge(password)) {
+      return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+    }
+    return new Response(JSON.stringify({ error: "Invalid" }), { status: 401, headers: corsHeaders });
+  }
+
+  return new Response("Not Found", { status: 404 });
 }
