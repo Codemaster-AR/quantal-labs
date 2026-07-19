@@ -1,5 +1,16 @@
 export async function onRequestPost(context) {
     const { request, env } = context;
+    
+    // DEBUG: Check if DB exists
+    if (!env.DB) {
+        return new Response(JSON.stringify({ error: "Database binding missing" }), { status: 500 });
+    }
+
+    const { username, password } = await request.json();
+ 
+
+export async function onRequestPost(context) {
+    const { request, env } = context;
     const { username, password } = await request.json();
 
     // 1. Fetch user by username
@@ -27,3 +38,4 @@ async function deriveHash(password, salt) {
     }, baseKey, 256);
     return [...new Uint8Array(derivedBits)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
