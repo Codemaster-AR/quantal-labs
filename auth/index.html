@@ -1,1 +1,27 @@
-bro bor b
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <meta http-equiv="refresh" content="0; url=https://quantal-labs.com/auth/login/">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen font-sans">
+
+    <div class="bg-white p-8 rounded-2xl shadow-xl text-center max-w-sm mx-4">
+        <h1 class="text-xl font-semibold text-gray-800 mb-4">Redirecting you...</h1>
+        <p class="text-gray-600 mb-6">If you are not redirected automatically, please click the button below.</p>
+        
+        <a href="https://quantal-labs.com/auth/login/" 
+           class="inline-block bg-blue-600 text-white font-medium py-3 px-6 rounded-xl hover:bg-blue-700 transition duration-200">
+            Proceed to Login
+        </a>
+    </div>
+
+    <script>
+        // Redirect immediately upon load
+        window.location.href = "https://quantal-labs.com/auth/login/";
+    </script>
+</body>
+</html>
