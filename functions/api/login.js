@@ -7,11 +7,6 @@ export async function onRequestPost(context) {
     }
 
     const { username, password } = await request.json();
- 
-
-export async function onRequestPost(context) {
-    const { request, env } = context;
-    const { username, password } = await request.json();
 
     // 1. Fetch user by username
     const user = await env.DB.prepare("SELECT * FROM Users WHERE username = ?")
@@ -38,4 +33,3 @@ async function deriveHash(password, salt) {
     }, baseKey, 256);
     return [...new Uint8Array(derivedBits)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
-
