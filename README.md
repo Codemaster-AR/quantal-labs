@@ -1,5 +1,5 @@
 
-# Quantal Univeres (Quantal-Labs)
+# Quantal Universe (Quantal-Labs)
 
 Welcome to the official repository for Quantal Universe. 
 
