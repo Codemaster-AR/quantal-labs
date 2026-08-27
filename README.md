@@ -1,7 +1,7 @@
 
-# Quantal Labs Project
+# Quantal Univeres (Quantal-Labs)
 
-Welcome to the official repository for Quantal Labs. 
+Welcome to the official repository for Quantal Universe. 
 
 To explore our work, projects, and latest updates, please visit our main portal:
 
